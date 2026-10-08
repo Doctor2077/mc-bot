@@ -1,0 +1,248 @@
+{
+  "把斧头给我": {
+    "description": "把斧头给我",
+    "code": "const axe = bot.inventory.items().find(i => i.name.includes('axe'));\nif (axe) { await bot.equip(axe, 'hand'); bot.chat('给你斧头'); }",
+    "created": "2026-08-08T13:43:03.010Z",
+    "uses": 1
+  },
+  "你没给我": {
+    "description": "你没给我",
+    "code": "const items = bot.inventory.items();\nconst target = items.find(i => i.name.includes('diamond') || i.name.includes('iron') || i.name.includes('gold') || i.name.includes('coal') || i.name.includes('copper'));\nif (target) {\n  await bot.equip(target, 'hand');\n  bot.chat(`给你 ${target.count} 个 ${target.name}`);\n} else {\n  bot.chat('我背包里没有矿石');\n}",
+    "created": "2026-08-08T13:43:15.537Z",
+    "uses": 1
+  },
+  "没看到你": {
+    "description": "没看到你",
+    "code": "bot.chat(\"我在这里！\");",
+    "created": "2026-08-08T13:46:31.132Z",
+    "uses": 1
+  },
+  "做好了放地上": {
+    "description": "做好了放地上",
+    "code": "const item = bot.inventory.items().find(i => i.name.includes('crafting_table') || i.name.includes('furnace') || i.name.includes('chest'));\nif (item) { await bot.equip(item, 'hand'); const pos = bot.entity.position; await bot.placeBlock(pos.offset(1, 0, 0)); }",
+    "created": "2026-08-08T13:47:24.043Z",
+    "uses": 1
+  },
+  "你究竟会不会搞，如实回答": {
+    "description": "你究竟会不会搞，如实回答",
+    "code": "bot.chat(\"不会，我只会按指令干活，别问我能不能，直接说干什么。\");",
+    "created": "2026-08-08T13:47:33.899Z",
+    "uses": 1
+  },
+  "怎么复活": {
+    "description": "怎么复活",
+    "code": "bot.chat(\"我死了，需要重生！\");\nbot.chat(\"/spawn\");\nawait bot.waitForTicks(20);\nbot.chat(\"我复活了！\");",
+    "created": "2026-08-08T13:51:10.338Z",
+    "uses": 1
+  },
+  "我现在是旁观视角": {
+    "description": "我现在是旁观视角",
+    "code": "bot.chat(\"好的，你现在是旁观视角。我会继续执行任务。\");",
+    "created": "2026-08-08T13:51:21.730Z",
+    "uses": 1
+  },
+  "怎么退出": {
+    "description": "怎么退出",
+    "code": "bot.chat(\"退出指令已收到，再见！\");\nbot.end();",
+    "created": "2026-08-08T13:51:28.845Z",
+    "uses": 1
+  },
+  "怎么不动了": {
+    "description": "怎么不动了",
+    "code": "const target = bot.findBlock({matching: block => TREE_LOGS.includes(block.name), maxDistance: 32});\nif (target) {\n    await bot.collectBlock.collect(target);\n    bot.chat(\"砍完了，继续前进\");\n} else {\n    bot.chat(\"附近没有树了\");\n}",
+    "created": "2026-08-08T13:58:45.503Z",
+    "uses": 1
+  },
+  "你怎么感知MC": {
+    "description": "你怎么感知MC",
+    "code": "const blocks = bot.findBlocks({matching: block => TREE_LOGS.includes(block.name) || ORES.includes(block.name), maxDistance: 32, count: 5});\nif (blocks.length > 0) {\n  const nearest = blocks[0];\n  bot.chat(`我感知到最近的方块是${bot.blockAt(nearest).name}，距离${Math.round(bot.entity.position.distanceTo(nearest))}格`);\n  await bot.pathfinder.goto(new GoalNear(nearest.x, nearest.y, nearest.z, 2));\n} else {\n  bot.chat('我感知不到任何树木或矿石');\n}",
+    "created": "2026-08-08T13:59:06.259Z",
+    "uses": 1
+  },
+  "你能不能多读几块": {
+    "description": "你能不能多读几块",
+    "code": "const target = bot.findBlock({matching: block => TREE_LOGS.includes(block.name), maxDistance: 32});\nif (target) {\n  try {\n    await bot.collectBlock.collect(target, {timeout: 10000});\n    bot.chat('读了一块木头');\n  } catch (err) {\n    if (err.message.includes('goal was changed')) {\n      bot.chat('采集被中断，重新寻找目标');\n    } else {\n      throw err;\n    }\n  }\n} else {\n  bot.chat('附近没有木头了');\n}",
+    "created": "2026-08-08T13:59:33.679Z",
+    "uses": 1
+  },
+  "你有没有Z轴这个概念": {
+    "description": "你有没有Z轴这个概念",
+    "code": "const pos = bot.entity.position;\nbot.chat(`我的Z轴坐标是 ${Math.floor(pos.z)}`);",
+    "created": "2026-08-08T14:00:25.026Z",
+    "uses": 1
+  },
+  "我能看到很远的地方": {
+    "description": "我能看到很远的地方",
+    "code": "const target = bot.findBlock({matching: block => block.name === 'diamond_ore', maxDistance: 64});\nif (target) {\n  bot.chat('我看到了钻石矿！');\n  try {\n    await bot.pathfinder.goto(new GoalBlock(target.position.x, target.position.y, target.position.z));\n  } catch (err) {\n    bot.chat('无法到达目标位置');\n  }\n} else {\n  bot.chat('我看看远方...');\n  const blocks = bot.findBlocks({matching: block => ORES.includes(block.name), maxDistance: 128, count: 5});\n  if (blocks.length > 0) {\n    const far = blocks[blocks.length - 1];\n    try {\n      await bot.pathfinder.goto(new GoalBlock(far.x, far.y, far.z));\n    } catch (err) {\n      bot.chat('无法到达目标位置');\n    }\n  }\n}",
+    "created": "2026-08-08T14:00:41.112Z",
+    "uses": 1
+  },
+  "你能不能大范围扫描代码，然后通关MC": {
+    "description": "你能不能大范围扫描代码，然后通关MC",
+    "code": "async function scanAndWin(){const blocks=bot.findBlocks({matching:b=>b.name.includes('ore')||TREE_LOGS.includes(b.name),maxDistance:64,count:100});for(const p of blocks){const b=bot.blockAt(p);if(b&&b.name.includes('ore')){await bot.pathfinder.goto(new GoalNear(p.x,p.y,p.z,2));const item=bot.inventory.items().find(i=>i.name.includes('pickaxe'));if(item)await bot.equip(item,'hand');await bot.collectBlock.collect(b,{timeout:10000});}else if(b&&TREE_LOGS.includes(b.name)){await bot.pathfinder.goto(new GoalNear(p.x,p.y,p.z,2));await bot.collectBlock.collect(b,{timeout:10000});}}bot.chat('Scanned and collected!');}scanAndWin();",
+    "created": "2026-08-08T14:02:34.266Z",
+    "uses": 1
+  },
+  "能不能自己传送": {
+    "description": "能不能自己传送",
+    "code": "const pos = bot.entity.position;\nbot.chat(`我的坐标是 (${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)})`);\nconst goal = new GoalBlock(pos.x, pos.y + 5, pos.z);\nbot.pathfinder.goto(goal).then(() => {\n  bot.chat('我传送到上方5格了！');\n});",
+    "created": "2026-08-08T14:04:35.548Z",
+    "uses": 1
+  },
+  "Teleported rps to Claude]": {
+    "description": "Teleported rps to Claude]",
+    "code": "const target = bot.players['Claude']?.entity;\nif (target) {\n  await bot.pathfinder.goto(new GoalNear(target.position.x, target.position.y, target.position.z, 2));\n  bot.chat('Teleported rps to Claude');\n}",
+    "created": "2026-08-08T14:55:10.177Z",
+    "uses": 15
+  },
+  "是不是出幻觉了": {
+    "description": "是不是出幻觉了",
+    "code": "const target = bot.findBlock({matching: block => ORES.includes(block.name), maxDistance: 32});\nif (target) {\n  bot.chat('找到矿石: ' + target.name);\n  await bot.pathfinder.goto(new GoalNear(target.position.x, target.position.y, target.position.z, 2));\n  const block = bot.blockAt(target.position);\n  if (block && ORES.includes(block.name)) {\n    bot.chat('矿石真实存在，不是幻觉');\n  } else {\n    bot.chat('矿石消失了，确实是幻觉');\n  }\n} else {\n  bot.chat('没有找到矿石，可能是幻觉');\n}",
+    "created": "2026-08-08T14:12:50.108Z",
+    "uses": 1
+  },
+  "做把木剑给我": {
+    "description": "做把木剑给我",
+    "code": "const planks = bot.inventory.items().find(i => i.name.includes('_planks'));\nif (planks && planks.count >= 4) {\n  await bot.craft(bot.recipesFor(mcData.itemsByName.wooden_sword.id, null, 1, null)[0], 1, null);\n  bot.chat('木剑做好了');\n} else {\n  bot.chat('没有足够的木板做木剑');\n}",
+    "created": "2026-08-08T14:16:31.693Z",
+    "uses": 1
+  },
+  "哪有木剑": {
+    "description": "哪有木剑",
+    "code": "const woodenSword = bot.findBlock({matching: block => block.name.includes('wooden_sword'), maxDistance: 32});\nif (woodenSword) {\n  await bot.pathfinder.goto(new GoalNear(woodenSword.position.x, woodenSword.position.y, woodenSword.position.z, 1));\n  await bot.collectBlock.collect(woodenSword);\n  bot.chat('找到木剑了');\n} else {\n  bot.chat('附近没有木剑');\n}",
+    "created": "2026-08-08T14:16:52.661Z",
+    "uses": 1
+  },
+  "找不到树？": {
+    "description": "找不到树？",
+    "code": "const tree = bot.findBlock({matching: TREE_LOGS.map(id => mcData.blocksByName[id].id), maxDistance: 32});\nif (tree) { await bot.collectBlock.collect(tree); } else { bot.chat(\"找不到树，继续探索\"); await bot.pathfinder.goto(new GoalNear(bot.entity.position.x + (Math.random()*20-10), bot.entity.position.y, bot.entity.position.z + (Math.random()*20-10), 2)); }",
+    "created": "2026-08-08T14:17:25.308Z",
+    "uses": 1
+  },
+  "按空格键浮上来": {
+    "description": "按空格键浮上来",
+    "code": "const pos = bot.entity.position;\nbot.setControlState('jump', true);\nawait sleep(500);\nbot.setControlState('jump', false);\nbot.chat('浮上来了');",
+    "created": "2026-08-08T14:18:45.407Z",
+    "uses": 1
+  },
+  "你下次碰到没有见到的情况": {
+    "description": "你下次碰到没有见到的情况",
+    "code": "const seen = new Set();\nconst block = bot.findBlock({matching: (b) => !seen.has(b.name), maxDistance: 16});\nif (block) {\n  seen.add(block.name);\n  bot.chat(`第一次见到 ${block.name}`);\n  await bot.pathfinder.goto(new GoalBlock(block.position.x, block.position.y, block.position.z));\n}",
+    "created": "2026-08-08T14:19:04.407Z",
+    "uses": 1
+  },
+  "你自己先联机查资料": {
+    "description": "你自己先联机查资料",
+    "code": "const blocks = bot.findBlocks({matching: block => block.name.includes('_log') || block.name.includes('_ore'), maxDistance: 32, count: 5});\nfor (const pos of blocks) {\n  const block = bot.blockAt(pos);\n  bot.chat(`Found ${block.name} at ${pos.x} ${pos.y} ${pos.z}`);\n}\nbot.chat('Checked nearby blocks');",
+    "created": "2026-08-08T14:19:14.476Z",
+    "uses": 1
+  },
+  "你能联网吗": {
+    "description": "你能联网吗",
+    "code": "const net = await import('net');\nconst s = net.connect(80, 'example.com', () => { s.write('GET / HTTP/1.0\\r\\nHost: example.com\\r\\n\\r\\n'); });\ns.on('data', d => { bot.chat('收到: ' + d.toString().slice(0,100)); s.end(); });\ns.on('error', e => bot.chat('错误: ' + e.message));",
+    "created": "2026-08-08T14:19:27.729Z",
+    "uses": 1
+  },
+  "你告诉我哪有": {
+    "description": "你告诉我哪有",
+    "code": "const target = bot.findBlock({matching: block => TREE_LOGS.includes(block.name), maxDistance: 32});\nif (target) { \n  bot.chat(`在 ${target.position} 有 ${target.name}`); \n  try {\n    await bot.pathfinder.goto(new GoalBlock(target.position.x, target.position.y, target.position.z));\n  } catch (err) {\n    if (err.message === 'The goal was changed before it could be completed!') {\n      bot.chat('路径被中断，尝试重新寻找目标');\n      // Optionally retry or handle the interruption\n    } else {\n      throw err;\n    }\n  }\n} else { \n  bot.chat('附近没有树'); \n}",
+    "created": "2026-08-08T14:27:39.500Z",
+    "uses": 1
+  },
+  "那个是我自己做的": {
+    "description": "那个是我自己做的",
+    "code": "const target = bot.findBlock({matching: b => b.name === 'oak_log', maxDistance: 32});\nif (target) { \n  try {\n    await bot.pathfinder.goto(new GoalBlock(target.position.x, target.position.y, target.position.z)); \n    await bot.dig(target); \n    bot.chat('那个是我自己做的'); \n  } catch (err) {\n    if (err.message === 'The goal was changed before it could be completed!') {\n      bot.chat('目标被改变了，重新寻找');\n    } else {\n      throw err;\n    }\n  }\n}",
+    "created": "2026-08-08T14:29:05.770Z",
+    "uses": 1
+  },
+  "你做的呢": {
+    "description": "你做的呢",
+    "code": "const target = bot.findBlock({matching: block => TREE_LOGS.includes(block.name), maxDistance: 32});\nif (target) { \n  try {\n    await bot.collectBlock.collect(target);\n    bot.chat('你做的呢');\n  } catch (err) {\n    bot.chat('收集失败');\n  }\n} else { \n  bot.chat('没有找到树'); \n}",
+    "created": "2026-08-08T14:29:09.709Z",
+    "uses": 1
+  },
+  "你在你前面一格放": {
+    "description": "你在你前面一格放",
+    "code": "const targetPos = bot.entity.position.offset(1, 0, 0);\nconst targetBlock = bot.blockAt(targetPos);\nif (targetBlock && targetBlock.name.includes('_log')) {\n  await bot.dig(targetBlock);\n}",
+    "created": "2026-08-08T14:30:32.280Z",
+    "uses": 1
+  },
+  "在脚下放东西要跳起来放": {
+    "description": "在脚下放东西要跳起来放",
+    "code": "const target = bot.findBlock({matching: b => b.name.includes('_log') || b.name.includes('_ore'), maxDistance: 16});\nif (target) {\n  const pos = target.position;\n  await bot.pathfinder.goto(new GoalNear(pos.x, pos.y, pos.z, 2));\n  await bot.lookAt(pos);\n  await bot.setControlState('jump', true);\n  await sleep(200);\n  await bot.setControlState('jump', false);\n  await bot.placeBlock(target, new Vec3(0, -1, 0));\n}",
+    "created": "2026-08-08T14:30:38.206Z",
+    "uses": 1
+  },
+  "放在你前面一格吧": {
+    "description": "放在你前面一格吧",
+    "code": "const target = bot.entity.position.offset(1, 0, 0);\nawait bot.pathfinder.goto(new GoalBlock(target.x, target.y, target.z));\nbot.chat('放在你前面一格了');",
+    "created": "2026-08-08T14:31:25.608Z",
+    "uses": 1
+  },
+  "你自己做一个": {
+    "description": "你自己做一个",
+    "code": "const pos = bot.entity.position;\nconst tree = bot.findBlock({matching: b => TREE_LOGS.includes(b.name), maxDistance: 32});\nif (tree) {\n  await bot.pathfinder.goto(new GoalNear(tree.position.x, tree.position.y, tree.position.z, 2));\n  const block = bot.blockAt(tree.position);\n  if (block) { \n    const axe = bot.inventory.items().find(i => i.name.includes('_axe')) || bot.inventory.items()[0];\n    await bot.equip(axe, 'hand'); \n    try {\n      await bot.dig(block);\n    } catch (err) {\n      bot.chat(\"Digging failed: \" + err.message);\n    }\n  }\n} else { bot.chat(\"No trees found nearby\"); }",
+    "created": "2026-08-08T14:32:09.408Z",
+    "uses": 1
+  },
+  "放在地上": {
+    "description": "放在地上",
+    "code": "const target = bot.findBlock({matching: (b) => b.name === 'dirt' || b.name === 'grass_block', maxDistance: 5});\nif (target) {\n  const pos = target.position.offset(0, 1, 0);\n  bot.pathfinder.goto(new GoalBlock(pos.x, pos.y, pos.z)).then(() => {\n    bot.placeBlock(target, new Vec3(0, 1, 0));\n  });\n}",
+    "created": "2026-08-08T14:33:12.564Z",
+    "uses": 1
+  },
+  "哪里放好了": {
+    "description": "哪里放好了",
+    "code": "const chest = bot.findBlock({matching: block => block.name === 'chest', maxDistance: 32});\nif (chest) { bot.pathfinder.goto(new GoalBlock(chest.position.x, chest.position.y, chest.position.z)); bot.chat('哪里放好了'); }",
+    "created": "2026-08-08T14:33:24.963Z",
+    "uses": 1
+  },
+  "扔掉的案件是哪个": {
+    "description": "扔掉的案件是哪个",
+    "code": "const target = bot.findBlock({matching: block => block.name.includes('chest'), maxDistance: 16});\nif (target) { bot.pathfinder.goto(new GoalBlock(target.position.x, target.position.y, target.position.z)); await sleep(500); bot.chat('找到了箱子'); }",
+    "created": "2026-08-08T14:39:41.161Z",
+    "uses": 1
+  },
+  "扔掉物品": {
+    "description": "扔掉物品",
+    "code": "const items = bot.inventory.items();\nfor (const item of items) {\n  if (item.name.includes('log') || item.name.includes('ore')) {\n    bot.tossStack(item);\n  }\n}\nbot.chat('已扔掉物品');",
+    "created": "2026-08-08T14:39:48.283Z",
+    "uses": 1
+  },
+  "做把木剑": {
+    "description": "做把木剑",
+    "code": "const logs = bot.findBlocks({matching: block => TREE_LOGS.includes(block.name), maxDistance: 32, count: 1});\nif (logs.length === 0) { bot.chat(\"找不到木头\"); return; }\nconst logBlock = bot.blockAt(logs[0]);\nawait bot.collectBlock.collect(logBlock, {timeout: 20000});\nconst planks = bot.inventory.items().find(i => i.name.includes('planks'));\nif (!planks) { bot.chat(\"没有木板\"); return; }\nawait bot.equip(planks, 'hand');\nconst craftingTable = bot.findBlock({matching: b => b.name === 'crafting_table', maxDistance: 32});\nif (!craftingTable) { bot.chat(\"没有工作台\"); return; }\nawait bot.pathfinder.goto(new GoalNear(craftingTable.position.x, craftingTable.position.y, craftingTable.position.z));",
+    "created": "2026-08-08T14:42:15.821Z",
+    "uses": 1
+  },
+  "你带有木剑吗": {
+    "description": "你带有木剑吗",
+    "code": "const sword = bot.inventory.items().find(item => item.name.includes('sword'));\nbot.chat(sword ? '我带有木剑' : '我没有木剑');",
+    "created": "2026-08-08T14:48:10.960Z",
+    "uses": 1
+  },
+  "你怎么无法移动了": {
+    "description": "你怎么无法移动了",
+    "code": "const pos = bot.entity.position;\nconst below = bot.blockAt(pos.offset(0, -1, 0));\nif (below && below.name === 'air') {\n  bot.setControlState('jump', true);\n  setTimeout(() => bot.setControlState('jump', false), 500);\n} else {\n  bot.setControlState('forward', true);\n  setTimeout(() => bot.setControlState('forward', false), 1000);\n}",
+    "created": "2026-08-08T14:48:51.003Z",
+    "uses": 1
+  },
+  "你没拿火把": {
+    "description": "你没拿火把",
+    "code": "const torch = bot.findBlock({matching: block => block.name === 'torch', maxDistance: 32});\nif (torch) {\n    await bot.pathfinder.goto(new GoalNear(torch.position.x, torch.position.y, torch.position.z, 1));\n    const torchItem = bot.inventory.items().find(item => item.name === 'torch');\n    if (torchItem) {\n        await bot.equip(torchItem, 'hand');\n        await bot.activateBlock(torch);\n    }\n}",
+    "created": "2026-08-08T14:51:07.003Z",
+    "uses": 1
+  },
+  "你怎么不动了": {
+    "description": "你怎么不动了",
+    "code": "const pos = bot.entity.position;\nconst block = bot.findBlock({matching: (b) => TREE_LOGS.includes(b.name), maxDistance: 32});\nif (block) {\n  await bot.pathfinder.goto(new GoalBlock(block.position.x, block.position.y, block.position.z));\n  await bot.dig(block);\n  bot.chat(\"砍树完成\");\n} else {\n  bot.chat(\"附近没有树\");\n}",
+    "created": "2026-08-08T14:51:51.803Z",
+    "uses": 1
+  },
+  "怎么把物品扔给你": {
+    "description": "怎么把物品扔给你",
+    "code": "const target = bot.players[Object.keys(bot.players).find(p => p !== bot.username)];\nif (target) {\n  const pos = target.entity.position;\n  bot.lookAt(pos);\n  const item = bot.inventory.items()[0];\n  if (item) {\n    bot.toss(item.type, item.count, null);\n    bot.chat('扔给你了!');\n  }\n}",
+    "created": "2026-08-08T14:58:08.731Z",
+    "uses": 1
+  }
+}

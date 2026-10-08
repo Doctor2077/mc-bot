@@ -1,0 +1,24 @@
+{
+  "name": "mc-bot",
+  "version": "1.0.0",
+  "description": "Voyager-style Minecraft 1.20.1 AI bot: LLM generates JS code executed in a sandboxed VM with watchdog, persistent skill library, live status panel",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "keywords": [
+    "minecraft",
+    "mineflayer",
+    "voyager",
+    "llm",
+    "ai-bot"
+  ],
+  "author": "Doctor2077",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "mineflayer": "^4.37.1",
+    "mineflayer-collectblock": "^1.6.0",
+    "mineflayer-pathfinder": "^2.4.5"
+  }
+}

@@ -1,0 +1,19 @@
+# 依赖
+node_modules/
+
+# 密钥与运行时配置
+.env
+
+# 运行产物 / 日志
+*.log
+response.txt
+messages.txt
+operations.log
+
+# AI 协作上下文（个人环境信息，不入库）
+CLAUDE.md
+AGENTS.md
+
+# 系统
+.DS_Store
+Thumbs.db

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Claude Code 实时工作面板</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0f1117; color: #d4d4d8; font-family: Consolas, "Courier New", monospace; font-size: 13px; line-height: 1.6; }
+  #header { position: sticky; top: 0; background: #161a23; border-bottom: 1px solid #2a2f3a; padding: 10px 16px; display: flex; align-items: center; gap: 12px; z-index: 10; }
+  #header h1 { font-size: 14px; font-weight: 500; color: #f0a35e; }
+  #dot { width: 10px; height: 10px; border-radius: 50%; background: #e24b4a; display: inline-block; }
+  #dot.on { background: #4ade80; box-shadow: 0 0 8px rgba(74,222,128,.6); }
+  #meta { color: #71717a; font-size: 12px; }
+  #out { padding: 12px 16px; }
+  .tool { color: #85b7eb; }
+  .toolname { color: #f0a35e; font-weight: 500; }
+  .result { color: #9fe1cb; }
+  .err { color: #f09595; }
+  .msg { color: #d4d4d8; }
+  .dim { color: #71717a; }
+  #loading { color: #71717a; padding: 16px; }
+  .row { padding: 2px 0; border-bottom: 1px solid #161a23; }
+</style>
+</head>
+<body>
+<div id="header">
+  <span id="dot"></span>
+  <h1>Claude Code 实时工作面板</h1>
+  <span id="meta">等待任务输出…</span>
+</div>
+<div id="loading">正在连接… 如果一直空白，说明没有任务在运行</div>
+<div id="out"></div>
+<script>
+const dot = document.getElementById('dot');
+const meta = document.getElementById('meta');
+const out = document.getElementById('out');
+const loading = document.getElementById('loading');
+let lastSize = 0;
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function trunc(s, n) {
+  s = String(s || '');
+  return s.length > n ? s.slice(0, n) + ' …' : s;
+}
+function fmtTime() {
+  return new Date().toLocaleTimeString('zh-CN', { hour12: false });
+}
+function inputSummary(name, input) {
+  if (!input) return '';
+  if (name === 'Read') return esc(input.file_path || input.filePath || '');
+  if (name === 'Write') return esc(input.file_path || input.filePath || '');
+  if (name === 'Edit') return (esc(input.file_path || input.filePath) || '') + ' (edit)';
+  if (name === 'Bash') return '$ ' + esc(input.command || '');
+  if (name === 'Glob') return 'pattern: ' + esc(input.pattern || '');
+  if (name === 'Grep') return 'pattern: ' + esc(input.pattern || '');
+  if (name === 'WebSearch') return '搜索: ' + esc(input.query || '');
+  if (name === 'WebFetch') return '抓取: ' + esc(input.url || '');
+  return esc(JSON.stringify(input)).slice(0, 100);
+}
+function renderRow(line) {
+  let obj = null;
+  try { obj = JSON.parse(line); } catch(e) { return null; }
+  const t = obj.type;
+  if (t === 'assistant') {
+    const content = (obj.message && obj.message.content) || [];
+    let html = '';
+    for (const c of content) {
+      if (c.type === 'text' && c.text) {
+        html += '<div class="row msg">💬 ' + esc(trunc(c.text, 400)) + '</div>';
+      } else if (c.type === 'tool_use') {
+        const n = c.name || 'tool';
+        html += '<div class="row tool">🔧 <span class="toolname">' + esc(n) + '</span> ' + inputSummary(n, c.input) + '</div>';
+      }
+    }
+    return html || null;
+  }
+  if (t === 'user') {
+    const content = (obj.message && obj.message.content) || [];
+    let html = '';
+    for (const c of content) {
+      if (c.type === 'tool_result') {
+        let r = c.content;
+        if (typeof r !== 'string') { try { r = JSON.stringify(r); } catch(e) { r = ''; } }
+        const isErr = /error|✗|failed/i.test(r);
+        html += '<div class="row ' + (isErr ? 'err' : 'result') + '">↩ ' + esc(trunc(r, 300)) + '</div>';
+      }
+    }
+    return html || null;
+  }
+  if (t === 'result') {
+    const s = obj.subtype || obj.is_error ? '完成' : '完成';
+    return '<div class="row result">✔ ' + esc(s) + '</div>';
+  }
+  if (t === 'system' && obj.subtype === 'init') {
+    return '<div class="row dim">— 会话初始化 —</div>';
+  }
+  return null;
+}
+
+async function poll() {
+  try {
+    const r = await fetch('/log', { cache: 'no-store' });
+    const data = await r.json();
+    loading.style.display = 'none';
+    dot.className = 'on';
+    meta.textContent = '实时流 · ' + data.size + ' 字节 · ' + fmtTime();
+    if (data.size === lastSize) return;
+    lastSize = data.size;
+    const lines = data.tail.split('\n');
+    let html = '';
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const rowHtml = renderRow(line);
+      if (rowHtml) html += rowHtml;
+    }
+    if (html) out.innerHTML = html;
+    window.scrollTo(0, document.body.scrollHeight);
+  } catch (e) {
+    dot.className = '';
+    meta.textContent = '连接断开 ' + fmtTime();
+  }
+}
+
+poll();
+setInterval(poll, 1000);
+</script>
+</body>
+</html>
